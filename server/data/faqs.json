@@ -1,0 +1,82 @@
+[
+  {
+    "_id": "faq_q8p0rl5g6",
+    "views": 1,
+    "helpfulCount": 0,
+    "notHelpfulCount": 0,
+    "duplicateMatchCount": 0,
+    "confusionScore": 0,
+    "question": "Can I request a stipend advance during my internship?",
+    "answer": "Stipend payments are processed only at the end of the monthly cycle upon verification of your milestone approvals. We do not support stipend advances or partial mid-cycle disbursements. Please coordinate with the finance team for specific banking queries.",
+    "category": "Internship Process",
+    "keywords": [
+      "stipend",
+      "advance",
+      "payment",
+      "bank",
+      "finance"
+    ],
+    "createdAt": "2026-05-30T05:47:10.535Z",
+    "updatedAt": "2026-05-30T06:16:36.432Z"
+  },
+  {
+    "_id": "faq_qg887m3xd",
+    "views": 3,
+    "helpfulCount": 0,
+    "notHelpfulCount": 0,
+    "duplicateMatchCount": 0,
+    "confusionScore": 0,
+    "question": "How do I change my allocated project mentor?",
+    "answer": "Mentor allocations are determined based on technical domain alignment. If you wish to request a mentor change, you must submit a formal request via email to the VLED Lab coordinator within the first 5 working days of your cohort. Mid-internship mentor transfers are generally not permitted.",
+    "category": "Internship Process",
+    "keywords": [
+      "mentor",
+      "change",
+      "allocation",
+      "transfer",
+      "coordinator"
+    ],
+    "createdAt": "2026-05-30T05:47:10.536Z",
+    "updatedAt": "2026-05-30T06:21:28.397Z"
+  },
+  {
+    "_id": "faq_g6ptgs3in",
+    "views": 2,
+    "helpfulCount": 0,
+    "notHelpfulCount": 0,
+    "duplicateMatchCount": 0,
+    "confusionScore": 0,
+    "question": "What is the procedure if I need to take medical leave?",
+    "answer": "In case of medical emergencies, please inform your project mentor and the lab coordinator via email immediately. You will need to upload your doctor certificate under the 'Documents' portal once you return to duty. Leaves exceeding 3 days may require extending the internship end date to fulfill core hours.",
+    "category": "Internship Process",
+    "keywords": [
+      "leave",
+      "medical",
+      "sick",
+      "emergency",
+      "doctor",
+      "certificate"
+    ],
+    "createdAt": "2026-05-30T05:47:10.536Z",
+    "updatedAt": "2026-05-30T06:16:36.439Z"
+  },
+  {
+    "_id": "faq_e3n0rtgyw",
+    "views": 1,
+    "helpfulCount": 1,
+    "notHelpfulCount": 0,
+    "duplicateMatchCount": 0,
+    "confusionScore": -1,
+    "question": "Offer letter not received yet",
+    "answer": "check samagama",
+    "category": "Offer Letter",
+    "keywords": [
+      "offer-letter",
+      "received",
+      "selected",
+      "letter"
+    ],
+    "createdAt": "2026-05-30T06:17:39.610Z",
+    "updatedAt": "2026-05-30T06:21:24.541Z"
+  }
+]

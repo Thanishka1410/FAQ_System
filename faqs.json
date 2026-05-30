@@ -1,0 +1,20 @@
+[
+  {
+    "question": "Can I request a stipend advance during my internship?",
+    "answer": "Stipend payments are processed only at the end of the monthly cycle upon verification of your milestone approvals. We do not support stipend advances or partial mid-cycle disbursements. Please coordinate with the finance team for specific banking queries.",
+    "category": "Internship Process",
+    "keywords": ["stipend", "advance", "payment", "bank", "finance"]
+  },
+  {
+    "question": "How do I change my allocated project mentor?",
+    "answer": "Mentor allocations are determined based on technical domain alignment. If you wish to request a mentor change, you must submit a formal request via email to the VLED Lab coordinator within the first 5 working days of your cohort. Mid-internship mentor transfers are generally not permitted.",
+    "category": "Internship Process",
+    "keywords": ["mentor", "change", "allocation", "transfer", "coordinator"]
+  },
+  {
+    "question": "What is the procedure if I need to take medical leave?",
+    "answer": "In case of medical emergencies, please inform your project mentor and the lab coordinator via email immediately. You will need to upload your doctor certificate under the 'Documents' portal once you return to duty. Leaves exceeding 3 days may require extending the internship end date to fulfill core hours.",
+    "category": "Internship Process",
+    "keywords": ["leave", "medical", "sick", "emergency", "doctor", "certificate"]
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "_id": "admin_7m7wmnisj",
+    "role": "admin",
+    "name": "VLED Admin",
+    "email": "admin@samagama.iitr.ac.in",
+    "password": "$2a$10$k5Wp7rEEPVfpb8OVuKLIrOqU7C7eQuIFYESP8IlYg16FXSDPNMDzG",
+    "createdAt": "2026-05-30T05:47:10.538Z",
+    "updatedAt": "2026-05-30T05:47:10.538Z"
+  }
+]

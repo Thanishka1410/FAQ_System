@@ -1,0 +1,90 @@
+[
+  {
+    "_id": "question_mmczr5bu1",
+    "status": "AddedToFAQ",
+    "answer": "check samagama",
+    "tags": [
+      "offer-letter",
+      "delay"
+    ],
+    "matchedFAQIds": [],
+    "name": "Aarav Sharma",
+    "email": "aarav.sharma@example.com",
+    "category": "Offer Letter",
+    "title": "Offer letter not received yet",
+    "description": "I was selected on May 20th but have not received my offer letter in my inbox. Please help me get the letter.",
+    "createdAt": "2026-05-30T03:47:10.660Z",
+    "updatedAt": "2026-05-30T06:17:39.612Z"
+  },
+  {
+    "_id": "question_r90n1sfde",
+    "status": "Pending",
+    "answer": "",
+    "tags": [
+      "certificate",
+      "noc",
+      "verification"
+    ],
+    "matchedFAQIds": [],
+    "name": "Sneha Patel",
+    "email": "sneha.patel@example.com",
+    "category": "Certificate",
+    "title": "NOC verification taking too long",
+    "description": "I uploaded my No Objection Certificate 4 days ago, but the status is still showing as pending verification. When will it be verified?",
+    "createdAt": "2026-05-30T00:47:10.660Z",
+    "updatedAt": "2026-05-30T05:47:10.661Z"
+  },
+  {
+    "_id": "question_kuu8bcr83",
+    "status": "Pending",
+    "answer": "",
+    "tags": [
+      "certificate",
+      "noc",
+      "approval"
+    ],
+    "matchedFAQIds": [],
+    "name": "Sneha Patel",
+    "email": "sneha.patel@example.com",
+    "category": "Certificate",
+    "title": "NOC approval is delayed",
+    "description": "Uploaded my NOC letter 5 days ago, but it has not been reviewed by any coordinator yet. Please speed it up.",
+    "createdAt": "2026-05-30T01:47:10.660Z",
+    "updatedAt": "2026-05-30T05:47:10.661Z"
+  },
+  {
+    "_id": "question_zojzeh0lu",
+    "status": "Pending",
+    "answer": "",
+    "tags": [
+      "portal-login",
+      "password-reset"
+    ],
+    "matchedFAQIds": [],
+    "name": "Rahul Verma",
+    "email": "rahul.verma@example.com",
+    "category": "Login Issues",
+    "title": "Forgot password reset not working",
+    "description": "I clicked forgot password but did not receive any reset link in my Gmail inbox. Checked spam as well.",
+    "createdAt": "2026-05-29T19:47:10.660Z",
+    "updatedAt": "2026-05-30T05:47:10.661Z"
+  },
+  {
+    "_id": "question_9t7nxouoc",
+    "status": "Rejected",
+    "answer": "",
+    "tags": [
+      "selection",
+      "confirmation",
+      "error"
+    ],
+    "matchedFAQIds": [],
+    "name": "Priya Iyer",
+    "email": "priya.iyer@example.com",
+    "category": "Selection Confirmation",
+    "title": "Confirming selection link shows error",
+    "description": "When I click the confirm selection button in my selection email, the page says \"Link Expired\". How do I confirm my selection now?",
+    "createdAt": "2026-05-29T05:47:10.660Z",
+    "updatedAt": "2026-05-30T06:17:57.421Z"
+  }
+]
