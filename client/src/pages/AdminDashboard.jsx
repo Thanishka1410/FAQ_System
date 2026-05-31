@@ -10,9 +10,20 @@ import Toast from '../components/Toast.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { 
   FileSpreadsheet, Sparkles, Plus, AlertCircle, Edit, Trash2, 
-  HelpCircle, Eye, ThumbsUp, ThumbsDown, Check, TrendingUp, RefreshCw 
+  HelpCircle, Eye, ThumbsUp, ThumbsDown, Check, TrendingUp, RefreshCw,
+  LayoutGrid, List, Search, ListFilter, ArrowUpDown, AlertTriangle
 } from 'lucide-react';
 import { CATEGORIES } from '../components/CategoryFilter.jsx';
+
+const CATEGORY_COLORS = {
+  'Offer Letter': 'bg-blue-50 text-blue-700 border-blue-100',
+  'Selection Confirmation': 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  'Login Issues': 'bg-amber-50 text-amber-700 border-amber-100',
+  'Certificate': 'bg-purple-50 text-purple-700 border-purple-100',
+  'Internship Process': 'bg-indigo-50 text-indigo-700 border-indigo-100',
+  'Technical Issues': 'bg-rose-50 text-rose-700 border-rose-100',
+  'General Queries': 'bg-slate-50 text-slate-700 border-slate-100',
+};
 
 const AdminDashboard = () => {
   const { admin, loading: authLoading } = useAuth();
@@ -42,6 +53,12 @@ const AdminDashboard = () => {
   const [isAnswerModalOpen, setIsAnswerModalOpen] = useState(false);
   const [isCreateFaqOpen, setIsCreateFaqOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
+
+  // FAQ directory interactive console states
+  const [faqSearchQuery, setFaqSearchQuery] = useState('');
+  const [faqSelectedCategory, setFaqSelectedCategory] = useState('All');
+  const [faqSortBy, setFaqSortBy] = useState('newest');
+  const [faqViewMode, setFaqViewMode] = useState('grid');
 
   // New FAQ form values
   const [faqQuestion, setFaqQuestion] = useState('');
@@ -291,6 +308,42 @@ const AdminDashboard = () => {
     setFaqKeywords('');
   };
 
+  // Filter, search, and sort FAQs locally
+  const filteredFaqs = faqs
+    .filter(faq => {
+      const matchesCategory = faqSelectedCategory === 'All' || faq.category === faqSelectedCategory;
+      
+      const qText = faq.question ? faq.question.toLowerCase() : '';
+      const aText = faq.answer ? faq.answer.toLowerCase() : '';
+      const kwText = faq.keywords ? faq.keywords.join(' ').toLowerCase() : '';
+      const searchLower = faqSearchQuery.toLowerCase();
+      
+      const matchesSearch = qText.includes(searchLower) || aText.includes(searchLower) || kwText.includes(searchLower);
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (faqSortBy === 'views') {
+        return (b.views || 0) - (a.views || 0);
+      }
+      if (faqSortBy === 'helpful') {
+        return (b.helpfulCount || 0) - (a.helpfulCount || 0);
+      }
+      if (faqSortBy === 'confusion') {
+        return (b.confusionScore || 0) - (a.confusionScore || 0);
+      }
+      // 'newest'
+      return new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0);
+    });
+
+  // Calculate local FAQ-specific metrics
+  const totalFaqViews = faqs.reduce((acc, curr) => acc + (curr.views || 0), 0);
+  const totalHelpfulVotes = faqs.reduce((acc, curr) => acc + (curr.helpfulCount || 0), 0);
+  const totalNotHelpfulVotes = faqs.reduce((acc, curr) => acc + (curr.notHelpfulCount || 0), 0);
+  const avgHelpfulPercentage = totalHelpfulVotes + totalNotHelpfulVotes > 0
+    ? Math.round((totalHelpfulVotes / (totalHelpfulVotes + totalNotHelpfulVotes)) * 100)
+    : 100;
+  const highConfusionFaqsCount = faqs.filter(faq => (faq.confusionScore || 0) >= 5).length;
+
   if (authLoading || !admin) {
     return <LoadingSpinner size="large" fullPage={true} />;
   }
@@ -449,42 +502,185 @@ const AdminDashboard = () => {
                 />
               </div>
             )}
-
             {/* MANAGE FAQS PANEL */}
             {activeTab === 'faqs' && (
               <div className="space-y-6 animate-fade-in">
                 
-                {/* Top actions */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-slate-200 p-4 rounded-xl gap-4 shadow-sm">
-                  <span className="text-xs sm:text-sm font-bold text-slate-700">
-                    Directory contains <span className="text-brand-600 font-extrabold">{faqs.length} FAQs</span>
-                  </span>
+                {/* FAQ Dashboard Metrics Ribbon */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Stat 1: Total FAQs */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow transition-all duration-300">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Catalog FAQs</span>
+                      <span className="text-2xl font-black text-slate-900">{faqs.length}</span>
+                      <span className="text-[10px] font-medium text-slate-400 block">Curated formal database</span>
+                    </div>
+                    <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                      <FileSpreadsheet className="h-5 w-5" />
+                    </div>
+                  </div>
                   
-                  <div className="flex items-center space-x-2 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={handleSyncFAQFile}
-                      className="flex-grow sm:flex-grow-0 flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs sm:text-sm font-bold text-slate-600 shadow-sm active:scale-95 transition-all"
-                      title="Import FAQs directly from local file (RAG-ready)"
-                    >
-                      <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
-                      <span>Sync RAG File</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        resetFaqForm();
-                        setIsCreateFaqOpen(true);
-                      }}
-                      className="flex-grow sm:flex-grow-0 btn-primary py-2.5 px-4 text-xs sm:text-sm flex items-center justify-center space-x-1"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Create FAQ Card</span>
-                    </button>
+                  {/* Stat 2: Total Views */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow transition-all duration-300">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cumulative FAQ Views</span>
+                      <span className="text-2xl font-black text-slate-900">{totalFaqViews}</span>
+                      <span className="text-[10px] font-medium text-slate-400 block">Total intern reads logged</span>
+                    </div>
+                    <div className="h-10 w-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+                      <Eye className="h-5 w-5" />
+                    </div>
+                  </div>
+
+                  {/* Stat 3: Avg Helpfulness */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow transition-all duration-300">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Average Helpful Ratio</span>
+                      <span className="text-2xl font-black text-slate-900">{avgHelpfulPercentage}%</span>
+                      <span className="text-[10px] font-medium text-slate-400 block font-bold text-emerald-600">User satisfaction benchmark</span>
+                    </div>
+                    <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                      <ThumbsUp className="h-5 w-5" />
+                    </div>
+                  </div>
+
+                  {/* Stat 4: High Confusion Alerts */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow transition-all duration-300">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">FAQs Needing Update</span>
+                      <span className={`text-2xl font-black ${highConfusionFaqsCount > 0 ? 'text-amber-600 animate-pulse' : 'text-slate-900'}`}>{highConfusionFaqsCount}</span>
+                      <span className="text-[10px] font-medium text-slate-400 block">Confusion score &ge; 5</span>
+                    </div>
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center border ${
+                      highConfusionFaqsCount > 0 
+                        ? 'bg-amber-50 border-amber-200 text-amber-600 animate-pulse' 
+                        : 'bg-slate-50 border-slate-100 text-slate-400'
+                    }`}>
+                      <AlertTriangle className="h-5 w-5" />
+                    </div>
                   </div>
                 </div>
 
-                {/* FAQ Creation Form overlays / inline details */}
+                {/* Interactive Controls Row */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                    {/* Search Bar */}
+                    <div className="relative flex-grow max-w-xl">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={faqSearchQuery}
+                        onChange={(e) => setFaqSearchQuery(e.target.value)}
+                        placeholder="Search through curated FAQ questions, answers, and keywords..."
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-brand-500 transition-all"
+                      />
+                      {faqSearchQuery && (
+                        <button
+                          onClick={() => setFaqSearchQuery('')}
+                          type="button"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Quick controls: Sort and View mode switcher, Sync file, Create FAQ */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      {/* Sort selector */}
+                      <div className="flex items-center space-x-1.5">
+                        <ListFilter className="h-4 w-4 text-slate-400" />
+                        <select
+                          value={faqSortBy}
+                          onChange={(e) => setFaqSortBy(e.target.value)}
+                          className="px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none text-slate-700 font-bold"
+                        >
+                          <option value="newest">Sort: Newest</option>
+                          <option value="views">Sort: Views/Traffic</option>
+                          <option value="helpful">Sort: Helpfulness</option>
+                          <option value="confusion">Sort: Confusion Score</option>
+                        </select>
+                      </div>
+
+                      {/* View Mode Toggle (Grid vs Table) */}
+                      <div className="flex rounded-xl border border-slate-200 p-0.5 bg-slate-50">
+                        <button
+                          type="button"
+                          onClick={() => setFaqViewMode('grid')}
+                          className={`p-1.5 rounded-lg transition-all ${
+                            faqViewMode === 'grid'
+                              ? 'bg-white text-brand-600 shadow-sm border border-slate-100'
+                              : 'text-slate-400 hover:text-slate-700'
+                          }`}
+                          title="Grid View"
+                        >
+                          <LayoutGrid className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFaqViewMode('table')}
+                          className={`p-1.5 rounded-lg transition-all ${
+                            faqViewMode === 'table'
+                              ? 'bg-white text-brand-600 shadow-sm border border-slate-100'
+                              : 'text-slate-400 hover:text-slate-700'
+                          }`}
+                          title="Compact Table View"
+                        >
+                          <List className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {/* Action buttons */}
+                      <button
+                        type="button"
+                        onClick={handleSyncFAQFile}
+                        className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-600 shadow-sm active:scale-95 transition-all"
+                        title="Sync from local file (faqs.json or faqs.txt)"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+                        <span>Sync File</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetFaqForm();
+                          setIsCreateFaqOpen(true);
+                        }}
+                        className="btn-primary py-2 px-3 text-xs flex items-center justify-center space-x-1 font-bold"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Create FAQ</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Horizontal category filtering chips */}
+                  <div className="flex items-center space-x-2 pt-2 border-t border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block shrink-0">Category:</span>
+                    <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1 max-h-24 scrollbar-thin">
+                      {CATEGORIES.map(cat => {
+                        const isActive = faqSelectedCategory === cat;
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setFaqSelectedCategory(cat)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all border active:scale-95 shrink-0 ${
+                              isActive
+                                ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
+                                : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* FAQ Creation/Edit Form overlays / inline details */}
                 {isCreateFaqOpen && (
                   <form 
                     onSubmit={handleFAQSubmit}
@@ -555,7 +751,7 @@ const AdminDashboard = () => {
                     <div className="space-y-1.5">
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
                         <span>FAQ Search Keywords</span>
-                        <span className="text-[10px] text-slate-400 capitalize">Separate keywords with commas</span>
+                        <span className="text-[10px] text-slate-400 capitalize font-medium">Separate keywords with commas</span>
                       </label>
                       <input
                         type="text"
@@ -564,6 +760,16 @@ const AdminDashboard = () => {
                         placeholder="e.g. offer, letter, receive, batch, delay"
                         className="block w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white"
                       />
+                      {/* Live Keyword Tag Chips Preview */}
+                      {faqKeywords.trim() && (
+                        <div className="flex flex-wrap gap-1.5 pt-1.5">
+                          {faqKeywords.split(',').map(kw => kw.trim()).filter(Boolean).map((kw, i) => (
+                            <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded bg-brand-50 border border-brand-100 text-[10px] font-bold text-brand-600 animate-slide-up">
+                              #{kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex justify-end space-x-2 border-t border-slate-200 pt-3 text-xs">
@@ -587,59 +793,212 @@ const AdminDashboard = () => {
                   </form>
                 )}
 
-                {/* List of existing FAQ cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {faqs.map((faq) => (
-                    <div 
-                      key={faq._id}
-                      className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow transition-all space-y-4 flex flex-col justify-between"
+                {/* List of existing FAQ cards in Grid or Table view */}
+                {filteredFaqs.length === 0 ? (
+                  <div className="text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                    <HelpCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                    <h4 className="font-bold text-slate-800 text-lg">No FAQs found</h4>
+                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1 leading-relaxed">
+                      We couldn't find any formal FAQs matching search <strong>"{faqSearchQuery}"</strong> under category <strong>"{faqSelectedCategory}"</strong>.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setFaqSearchQuery('');
+                        setFaqSelectedCategory('All');
+                      }}
+                      type="button"
+                      className="mt-6 px-4 py-2 border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-xl"
                     >
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-start">
-                          <span className="inline-flex px-2.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">
-                            {faq.category}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-400 flex items-center space-x-1">
-                            <Eye className="h-3 w-3 inline mr-0.5" />
-                            <span>{faq.views} views</span>
-                          </span>
-                        </div>
-                        <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 pr-4">
-                          {faq.question}
-                        </h4>
-                        <p className="text-xs text-slate-500 leading-normal line-clamp-3">
-                          {faq.answer}
-                        </p>
-                      </div>
+                      Reset Filters & Search
+                    </button>
+                  </div>
+                ) : faqViewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredFaqs.map((faq) => {
+                      const categoryStyle = CATEGORY_COLORS[faq.category] || 'bg-slate-100 text-slate-800 border-slate-200';
+                      return (
+                        <div 
+                          key={faq._id}
+                          className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all space-y-4 flex flex-col justify-between"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start">
+                              <span className={`inline-flex px-2.5 py-0.5 rounded text-[10px] font-bold border ${categoryStyle}`}>
+                                {faq.category}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-400 flex items-center space-x-1">
+                                <Eye className="h-3 w-3 inline mr-0.5" />
+                                <span>{faq.views} views</span>
+                              </span>
+                            </div>
+                            <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 pr-4">
+                              {faq.question}
+                            </h4>
+                            <p className="text-xs text-slate-500 leading-normal line-clamp-3">
+                              {faq.answer}
+                            </p>
+                            {/* Render small tag badges if keywords exist */}
+                            {faq.keywords && faq.keywords.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1.5">
+                                {faq.keywords.slice(0, 4).map((kw, i) => (
+                                  <span key={i} className="text-[9px] font-medium text-slate-400 bg-slate-50 px-1.5 py-0.2 border border-slate-100 rounded">
+                                    #{kw}
+                                  </span>
+                                ))}
+                                {faq.keywords.length > 4 && (
+                                  <span className="text-[9px] font-medium text-slate-400">+{faq.keywords.length - 4} more</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
 
-                      {/* Card actions */}
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-[10px] sm:text-xs">
-                        <div className="flex items-center space-x-2 text-slate-400">
-                          <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 border border-emerald-100 rounded">+{faq.helpfulCount} helpful</span>
-                          <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 border border-rose-100 rounded">-{faq.notHelpfulCount} confusion</span>
+                          {/* Card actions */}
+                          <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-[10px] sm:text-xs">
+                            <div className="flex items-center space-x-2 text-slate-400">
+                              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 border border-emerald-100 rounded">+{faq.helpfulCount} helpful</span>
+                              <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 border border-rose-100 rounded">-{faq.notHelpfulCount} confusion</span>
+                            </div>
+                            
+                            <div className="flex space-x-1">
+                              <button
+                                onClick={() => handleOpenEditFAQ(faq)}
+                                type="button"
+                                className="p-1.5 rounded bg-slate-50 hover:bg-slate-100 text-brand-600 hover:text-brand-700 transition-colors border border-slate-200"
+                                title="Edit FAQ"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </button>
+                              
+                              <button
+                                onClick={() => handleDeleteFAQ(faq._id)}
+                                type="button"
+                                className="p-1.5 rounded bg-slate-50 hover:bg-slate-100 text-rose-600 hover:text-rose-700 transition-colors border border-slate-200"
+                                title="Delete FAQ"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        
-                        <div className="flex space-x-1">
-                          <button
-                            onClick={() => handleOpenEditFAQ(faq)}
-                            className="p-1.5 rounded bg-slate-50 hover:bg-slate-100 text-brand-600 hover:text-brand-700 transition-colors border border-slate-200"
-                            title="Edit FAQ"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </button>
-                          
-                          <button
-                            onClick={() => handleDeleteFAQ(faq._id)}
-                            className="p-1.5 rounded bg-slate-50 hover:bg-slate-100 text-rose-600 hover:text-rose-700 transition-colors border border-slate-200"
-                            title="Delete FAQ"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Compact Tabular Database View */
+                  <div className="overflow-hidden bg-white border border-slate-200/90 rounded-2xl shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-900 text-slate-200 text-xs font-semibold uppercase tracking-wider">
+                            <th className="px-5 py-4 w-5/12 cursor-pointer hover:bg-slate-800 transition-colors" onClick={() => setFaqSortBy('newest')}>
+                              <div className="flex items-center space-x-1.5">
+                                <span>Question & Answer</span>
+                                <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
+                              </div>
+                            </th>
+                            <th className="px-5 py-4">Category</th>
+                            <th className="px-5 py-4 cursor-pointer hover:bg-slate-800 transition-colors" onClick={() => setFaqSortBy('views')}>
+                              <div className="flex items-center space-x-1.5">
+                                <span>Views</span>
+                                <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
+                              </div>
+                            </th>
+                            <th className="px-5 py-4 cursor-pointer hover:bg-slate-800 transition-colors" onClick={() => setFaqSortBy('helpful')}>
+                              <div className="flex items-center space-x-1.5">
+                                <span>Helpful</span>
+                                <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
+                              </div>
+                            </th>
+                            <th className="px-5 py-4 cursor-pointer hover:bg-slate-800 transition-colors" onClick={() => setFaqSortBy('confusion')}>
+                              <div className="flex items-center space-x-1.5">
+                                <span>Confusion</span>
+                                <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
+                              </div>
+                            </th>
+                            <th className="px-5 py-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+                          {filteredFaqs.map((faq) => {
+                            const categoryStyle = CATEGORY_COLORS[faq.category] || 'bg-slate-100 text-slate-800 border-slate-200';
+                            return (
+                              <tr key={faq._id} className="hover:bg-slate-50/50 transition-colors animate-fade-in">
+                                {/* Question & Answer */}
+                                <td className="px-5 py-4">
+                                  <div className="font-bold text-slate-900 leading-snug">{faq.question}</div>
+                                  <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed font-medium">{faq.answer}</p>
+                                  {faq.keywords && faq.keywords.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pt-1.5">
+                                      {faq.keywords.map((kw, i) => (
+                                        <span key={i} className="text-[9px] font-semibold text-slate-400">#{kw}</span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </td>
+                                
+                                {/* Category */}
+                                <td className="px-5 py-4 whitespace-nowrap">
+                                  <span className={`inline-flex px-2.5 py-0.5 rounded text-[10px] font-bold border ${categoryStyle}`}>
+                                    {faq.category}
+                                  </span>
+                                </td>
+
+                                {/* Views */}
+                                <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-500">
+                                  <div className="flex items-center space-x-1">
+                                    <Eye className="h-3.5 w-3.5 text-slate-400 mr-1" />
+                                    <span>{faq.views}</span>
+                                  </div>
+                                </td>
+
+                                {/* Helpful */}
+                                <td className="px-5 py-4 whitespace-nowrap font-semibold text-emerald-600">
+                                  <span>+{faq.helpfulCount}</span>
+                                </td>
+
+                                {/* Confusion Score */}
+                                <td className="px-5 py-4 whitespace-nowrap">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                    faq.confusionScore >= 5
+                                      ? 'bg-rose-50 border-rose-100 text-rose-600'
+                                      : faq.confusionScore >= 1
+                                        ? 'bg-amber-50 border-amber-100 text-amber-600'
+                                        : 'bg-slate-50 border-slate-100 text-slate-400'
+                                  }`}>
+                                    {faq.confusionScore}
+                                  </span>
+                                </td>
+
+                                {/* Actions */}
+                                <td className="px-5 py-4 text-right whitespace-nowrap">
+                                  <div className="flex items-center justify-end space-x-1.5">
+                                    <button
+                                      onClick={() => handleOpenEditFAQ(faq)}
+                                      type="button"
+                                      className="p-1.5 bg-slate-50 hover:bg-slate-100 text-brand-600 hover:text-brand-700 transition-colors border border-slate-200 rounded-lg"
+                                      title="Edit FAQ"
+                                    >
+                                      <Edit className="h-3.5 w-3.5" />
+                                    </button>
+                                    
+                                    <button
+                                      onClick={() => handleDeleteFAQ(faq._id)}
+                                      type="button"
+                                      className="p-1.5 bg-slate-50 hover:bg-slate-100 text-rose-600 hover:text-rose-700 transition-colors border border-slate-200 rounded-lg"
+                                      title="Delete FAQ"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 

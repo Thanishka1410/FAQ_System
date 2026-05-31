@@ -9,6 +9,8 @@ const __dirname = path.dirname(__filename);
 
 // Potential paths where the user might drop the FAQs file
 const POTENTIAL_PATHS = [
+  path.resolve(__dirname, '../../FAQ_info.txt'),   // Project root FAQ_info.txt
+  path.resolve(__dirname, '../FAQ_info.txt'),      // Server root FAQ_info.txt
   path.resolve(__dirname, '../../faqs.json'),      // Project root JSON
   path.resolve(__dirname, '../faqs.json'),         // Server root JSON
   path.resolve(__dirname, '../../faqs.txt'),       // Project root TXT
@@ -27,6 +29,103 @@ export const locateFAQFile = () => {
     }
   }
   return null;
+};
+
+// Mappings from parsed section to canonical CATEGORIES
+const createFAQObject = (question, answer, section) => {
+  const sectionLower = section.toLowerCase();
+  let category = 'General Queries';
+  
+  if (sectionLower.includes('offer') || sectionLower.includes('letter')) {
+    category = 'Offer Letter';
+  } else if (sectionLower.includes('selection') || sectionLower.includes('confirm')) {
+    category = 'Selection Confirmation';
+  } else if (sectionLower.includes('login') || sectionLower.includes('portal')) {
+    category = 'Login Issues';
+  } else if (sectionLower.includes('noc') || sectionLower.includes('certificate')) {
+    category = 'Certificate';
+  } else if (
+    sectionLower.includes('internship') || 
+    sectionLower.includes('timing') || 
+    sectionLower.includes('dates') || 
+    sectionLower.includes('work') || 
+    sectionLower.includes('mentorship') || 
+    sectionLower.includes('project') || 
+    sectionLower.includes('rosetta') || 
+    sectionLower.includes('journal') || 
+    sectionLower.includes('coursework') || 
+    sectionLower.includes('vibe') || 
+    sectionLower.includes('phase 1')
+  ) {
+    category = 'Internship Process';
+  } else if (sectionLower.includes('technical') || sectionLower.includes('bug') || sectionLower.includes('error')) {
+    category = 'Technical Issues';
+  }
+  
+  return {
+    question,
+    answer,
+    category,
+    keywords: preprocessText(question),
+    views: 0,
+    helpfulCount: 0,
+    notHelpfulCount: 0,
+    duplicateMatchCount: 0,
+    confusionScore: 0
+  };
+};
+
+/**
+ * Parses structured text format containing § symbols (e.g., FAQ_info.txt)
+ * @param {string} content 
+ * @returns {Array} List of FAQ objects
+ */
+const parseStructuredTextFAQ = (content) => {
+  const lines = content.split('\n');
+  const faqs = [];
+  
+  let currentSection = 'General Queries';
+  let currentQuestion = '';
+  let currentAnswerLines = [];
+  
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+    
+    // Check if it's a section title line (e.g., "1. About the internship §")
+    const sectionMatch = line.match(/^\d+\.\s+([^§]+)§/);
+    if (sectionMatch) {
+      if (currentQuestion && currentAnswerLines.length > 0) {
+        faqs.push(createFAQObject(currentQuestion, currentAnswerLines.join('\n'), currentSection));
+      }
+      currentSection = sectionMatch[1].trim();
+      currentQuestion = '';
+      currentAnswerLines = [];
+      continue;
+    }
+    
+    // Check if it's a question line (e.g., "1.1 What is the Vicharanashala internship? §")
+    const questionMatch = line.match(/^\d+\.\d+\s+([^§]+)§/);
+    if (questionMatch) {
+      if (currentQuestion && currentAnswerLines.length > 0) {
+        faqs.push(createFAQObject(currentQuestion, currentAnswerLines.join('\n'), currentSection));
+      }
+      currentQuestion = questionMatch[1].trim();
+      currentAnswerLines = [];
+      continue;
+    }
+    
+    if (currentQuestion) {
+      currentAnswerLines.push(line);
+    }
+  }
+  
+  // Save the last FAQ
+  if (currentQuestion && currentAnswerLines.length > 0) {
+    faqs.push(createFAQObject(currentQuestion, currentAnswerLines.join('\n'), currentSection));
+  }
+  
+  return faqs;
 };
 
 /**
@@ -109,6 +208,9 @@ export const loadFAQsFromFile = () => {
         confusionScore: faq.confusionScore || 0
       }));
     } else if (filePath.endsWith('.txt')) {
+      if (content.includes('§')) {
+        return parseStructuredTextFAQ(content);
+      }
       return parseTextFAQ(content);
     }
   } catch (error) {
